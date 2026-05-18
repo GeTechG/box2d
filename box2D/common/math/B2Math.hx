@@ -20,9 +20,6 @@ package box2D.common.math;
 
 import box2D.common.B2Settings;
 import box2D.collision.B2AABB;
-#if js
-import js.Syntax;
-#end
 
 /**
  * @private
@@ -281,7 +278,7 @@ class B2Math
 		#if flash
 		return untyped __global__["Number"].MIN_VALUE;
 		#elseif js
-		return Syntax.code("Number.MIN_VALUE");
+		return untyped #if haxe4 js.Syntax.code #else __js__ #end ("Number.MIN_VALUE");
 		#else
 		return 2.2250738585072014e-308;
 		#end
@@ -292,7 +289,7 @@ class B2Math
 		#if flash
 		return untyped __global__["Number"].MAX_VALUE;
 		#elseif js
-		return Syntax.code("Number.MAX_VALUE");
+		return untyped #if haxe4 js.Syntax.code #else __js__ #end ("Number.MAX_VALUE");
 		#else
 		return 1.7976931348623158e+308;
 		#end
