@@ -9,7 +9,7 @@ jobs:
 
       - uses: actions/checkout@v6
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: box2d-haxelib
           path: |
@@ -28,7 +28,7 @@ jobs:
 
       - uses: krdlab/setup-haxe@v2
         with:
-          haxe-version: 4.3.6
+          haxe-version: 4.3.7
 
       - name: Set HAXEPATH
         run: |
@@ -46,7 +46,7 @@ jobs:
         run: |
           haxe docs.hxml
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: box2d-docs
           path: docs
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.6]
+        haxe-version: [4.0.5, 4.1.5, 4.2.5, 4.3.7]
     steps:
 
       - uses: actions/checkout@v6
