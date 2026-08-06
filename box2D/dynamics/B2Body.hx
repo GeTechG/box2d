@@ -903,7 +903,7 @@ class B2Body
 	 */
 	public function setGravityScale(scale:Float):Void
 	{
-		m_angularDamping = scale;
+		m_gravityScale = scale;
 	}
 
 	/**
