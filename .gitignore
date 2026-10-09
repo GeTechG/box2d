@@ -1,6 +1,7 @@
 samples/*/Export
 docs
 scripts/xml
+xml
 scripts/pages
 # tools/setup.sh
 .serena/
