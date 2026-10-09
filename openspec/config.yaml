@@ -1,0 +1,6 @@
+schema: spec-driven
+
+context: |
+  box2d: the Haxe port of the Box2D 2D physics engine, maintained as an independent fork of
+  openfl/box2d. Its own rules live in AGENTS.md; its own specs live in openspec/specs. Consumers pin
+  it by commit. Every commit is either code or infrastructure, never both (see openspec/specs/commit-kinds).
