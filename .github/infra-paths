@@ -1,0 +1,7 @@
+# Infrastructure paths: files that do not exist upstream (openfl/box2d).
+# One path per line; a trailing / matches a directory prefix. Everything else is code.
+# A commit touches code or infrastructure, never both (see AGENTS.md).
+AGENTS.md
+openspec/
+.github/infra-paths
+tools/
