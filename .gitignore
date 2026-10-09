@@ -2,3 +2,7 @@ samples/*/Export
 docs
 scripts/xml
 scripts/pages
+# tools/setup.sh
+.serena/
+.haxe
+.ast-grep/
