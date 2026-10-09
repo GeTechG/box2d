@@ -3,23 +3,32 @@
 Independent fork of `openfl/box2d` (the Haxe port of the Box2D 2D physics engine). Its consumers pin it by commit; they do not dictate how it is worked on. This file is the source of truth here.
 
 ## Commits
-- Every commit is **code** (library sources under `box2D/`, upstream metadata such as `haxelib.json`, `include.xml`, `README.md`, upstream's own workflows) or **infrastructure** (the paths listed in `.github/infra-paths`: this file, `openspec/`, `tools/`). Never both.
+- Every commit is **code** (library sources under `box2D/`, upstream metadata such as `haxelib.json`, `include.xml`, `README.md`, upstream's own workflows) or **infrastructure** (the paths listed in `.github/infra-paths`: this file, `openspec/`, `tools/`, our CI and scripts, the agent configs and skills). Never both — CI rejects a mixed commit.
 - Code commit messages are written as for upstream `openfl/box2d`: a plain imperative summary of the library change, no mention of consumers or their paths.
 - OpenSpec artifacts are infrastructure commits and never share a commit with code.
 - An upstream PR is a cherry-pick of one task's code commits; keep them self-contained — they must build without any infrastructure commit.
 - Changing the list of infrastructure paths is an infrastructure commit.
 
 ## Toolchain
-- The compiler is a Haxe 5 build of `GeTechG/haxe`, pinned in `tools/haxe-build.pin` (`<build key> <sha256 of the archive>`). Changing the compiler is one commit that changes this file.
-- **Build and type only with this compiler**, never the system Haxe 4.x. The fork has no setup script yet: take the archive `haxe-linux64-<build key>.tar.gz` from the `builds` release of `GeTechG/haxe`, verify it against the pinned sha256, and run its `haxe` with `HAXE_STD_PATH` pointing at its `std`.
+Run `tools/setup.sh` once in every checkout or worktree, before anything else. It is the only setup step.
+- **Compiler.** Build and type only with the pinned Haxe 5: `.haxe/haxe` with `HAXE_STD_PATH=.haxe/std`. Never the system `haxe` (4.x). The pin is `tools/haxe-build.pin` — one line, `<build key> <sha256 of the archive>`, a build of `GeTechG/haxe`; changing the compiler is a one-commit change to that file.
 - The library has no dependencies and no test suite.
+- **Serena** (symbol navigation, configured in `.mcp.json` and `.codex/config.toml`) uses the language server and the display config `.serena/lsp.hxml` the script generates. Re-run the script after adding or removing source files or changing the pin, then restart Serena.
+- **Reference lists are not exhaustive.** The language server can miss call sites, and misses more when a module of `.serena/lsp.hxml` does not compile (the script fails loudly then). Before a rename or a removal, check against a text search (`grep -rn`).
+- **ast-grep** (`.ast-grep/ast-grep`, configured by `sgconfig.yml`; version and grammar commit — `GeTechG/tree-sitter-haxe` — are pinned in `tools/setup.sh`) finds Haxe code by syntactic shape: `.ast-grep/ast-grep run -p 'new $T($$$A)' -l haxe box2D`. Run it from the repository root.
+- **Which search.** *ast-grep* — where code of a given shape occurs (it skips comments and strings), and a bulk edit by pattern: `--rewrite '…'`, read the diff it prints, then apply with `-U`. *Serena* — what a name means: declaration, references, implementations, a rename. *Text search* (`grep -rn`) — comments, strings, non-Haxe files, and the cross-check of the other two. A pattern has to parse as a Haxe fragment on its own; when one finds nothing where text search does, look at it with `--debug-query=ast` and match by node kind instead. Grammar bugs are filed in the TSHX project.
+- **Lookup order.** Serena → `ast-grep` → text search, the first that answers. Read a file directly only once one of them has located the spot, and then only the range you need — never a whole source file to see what is in it (the symbol overview of Serena answers that).
 
 ## Checks
-Run before pushing — every module must type on the three targets its consumers build for:
+Run before pushing:
+
+- `bash .github/scripts/check-commit-kinds-test.sh` — self-test of the commit-kind check.
+- `bash .github/scripts/check-commit-kinds.sh origin/master..HEAD` — no commit of your branch mixes code and infrastructure.
+- Every module must type on the three targets its consumers build for (the `build` job of CI runs the same):
 
 ```bash
 for t in "--interp" "-hl /dev/null" "-js /dev/null"; do
-  haxe -cp . --macro "include('box2D')" --no-output $t || exit 1
+  HAXE_STD_PATH=.haxe/std .haxe/haxe -cp . --macro "include('box2D')" --no-output $t || exit 1
 done
 ```
 

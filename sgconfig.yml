@@ -1,0 +1,6 @@
+# ast-grep on the Haxe sources: search and rewrite by code shape. tools/setup.sh provides the binary
+# (.ast-grep/ast-grep) and builds the grammar library named below.
+customLanguages:
+  haxe:
+    libraryPath: .ast-grep/haxe.so
+    extensions: [hx]

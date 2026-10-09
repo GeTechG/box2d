@@ -4,4 +4,12 @@
 AGENTS.md
 openspec/
 .github/infra-paths
+.github/scripts/
+.github/workflows/ci.yml
 tools/
+.mcp.json
+.codex/
+sgconfig.yml
+.agents/
+.claude/
+skills-lock.json
