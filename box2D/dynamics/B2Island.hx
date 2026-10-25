@@ -439,10 +439,13 @@ class B2Island
 			var c:B2Contact = m_contacts[i];
 			var cc:B2ContactConstraint = constraints[i];
 
-			for (j in 0...cc.pointCount)
+			// The solver may use fewer points than the manifold has; a dropped point applied no impulse.
+			s_impulse.count = cc.manifold.m_pointCount;
+			for (j in 0...s_impulse.count)
 			{
-				s_impulse.normalImpulses[j] = cc.points[j].normalImpulse;
-				s_impulse.tangentImpulses[j] = cc.points[j].tangentImpulse;
+				var solved:Bool = j < cc.pointCount;
+				s_impulse.normalImpulses[j] = solved ? cc.points[j].normalImpulse : 0.0;
+				s_impulse.tangentImpulses[j] = solved ? cc.points[j].tangentImpulse : 0.0;
 			}
 			m_listener.postSolve(c, s_impulse);
 		}

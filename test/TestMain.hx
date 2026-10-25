@@ -28,6 +28,7 @@ class TestMain
 		testOneSidedBoxes();
 		testZeroScalesDropCachedImpulses();
 		testScalesResetBeforePreSolve();
+		testReducedContactReportsEveryPoint();
 
 		Sys.println('$checks checks, $failures failed');
 		Sys.exit(failures == 0 ? 0 : 1);
@@ -196,6 +197,38 @@ class TestMain
 		return body;
 	}
 
+	// A box resting flat on the ground has a two-point manifold. With both scales 0 its block-solver matrix is singular,
+	// so the solver keeps one point; the report still covers both, the dropped one with impulse 0.
+	static function testReducedContactReportsEveryPoint():Void
+	{
+		var world = new B2World(new B2Vec2(0, 10), false);
+		var listener = new SwitchToZeroListener();
+		world.setContactListener(listener);
+		var ground = world.createBody(new B2BodyDef());
+		var groundShape = new B2PolygonShape();
+		groundShape.setAsBox(5, 0.5);
+		var groundFixture = new B2FixtureDef();
+		groundFixture.shape = groundShape;
+		ground.createFixture(groundFixture);
+		ground.setPositionAndAngle(new B2Vec2(0, 1), 0);
+		createBox(world, 0, 0, 0, 0);
+		for (i in 0...60)
+		{
+			world.step(1 / 60, 10, 8);
+		}
+		check("reduced: the resting box has two points", listener.lastPointCount == 2);
+		check("reduced: the second point pushed", listener.lastSecondImpulse > 0);
+		listener.zero = true;
+		listener.lastSecondImpulse = -1;
+		world.step(1 / 60, 10, 8);
+		check("reduced: the manifold still has two points", listener.lastPointCount == 2);
+		check("reduced: count covers the manifold", listener.lastCount == 2, 'got ${listener.lastCount}');
+		near("reduced: dropped point reports no normal impulse", listener.lastSecondImpulse, 0, 0);
+		near("reduced: dropped point reports no tangent impulse", listener.lastSecondTangent, 0, 0);
+		var manifold = world.getContactList().getManifold();
+		near("reduced: dropped point caches no impulse", manifold.m_points[1].m_normalImpulse, 0, 0);
+	}
+
 	static function testScalesResetBeforePreSolve():Void
 	{
 		var listener = new FirstStepOnlyListener();
@@ -261,6 +294,10 @@ class SwitchToZeroListener extends B2ContactListener
 	public var zero:Bool = false;
 	public var maxImpulse:Float = 0;
 	public var reports:Int = 0;
+	public var lastCount:Int = 0;
+	public var lastPointCount:Int = 0;
+	public var lastSecondImpulse:Float = 0;
+	public var lastSecondTangent:Float = 0;
 
 	override public function preSolve(contact:B2Contact, oldManifold:B2Manifold):Void
 	{
@@ -273,6 +310,10 @@ class SwitchToZeroListener extends B2ContactListener
 	override public function postSolve(contact:B2Contact, impulse:B2ContactImpulse):Void
 	{
 		reports++;
+		lastCount = impulse.count;
+		lastPointCount = contact.getManifold().m_pointCount;
+		lastSecondImpulse = impulse.normalImpulses[1];
+		lastSecondTangent = impulse.tangentImpulses[1];
 		for (i in 0...contact.getManifold().m_pointCount)
 		{
 			maxImpulse = Math.max(maxImpulse, Math.max(Math.abs(impulse.normalImpulses[i]), Math.abs(impulse.tangentImpulses[i])));

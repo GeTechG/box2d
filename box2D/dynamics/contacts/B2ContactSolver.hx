@@ -762,12 +762,21 @@ class B2ContactSolver
 			var c:B2ContactConstraint = m_constraints[i];
 			var m:B2Manifold = c.manifold;
 
-			for (j in 0...c.pointCount)
+			for (j in 0...m.m_pointCount)
 			{
 				var point1:B2ManifoldPoint = m.m_points[j];
-				var point2:B2ContactConstraintPoint = c.points[j];
-				point1.m_normalImpulse = point2.normalImpulse;
-				point1.m_tangentImpulse = point2.tangentImpulse;
+				if (j < c.pointCount)
+				{
+					var point2:B2ContactConstraintPoint = c.points[j];
+					point1.m_normalImpulse = point2.normalImpulse;
+					point1.m_tangentImpulse = point2.tangentImpulse;
+				}
+				else
+				{
+					// Dropped by the block solver: it applied nothing, so it warm-starts from nothing.
+					point1.m_normalImpulse = 0.0;
+					point1.m_tangentImpulse = 0.0;
+				}
 			}
 		}
 	}
