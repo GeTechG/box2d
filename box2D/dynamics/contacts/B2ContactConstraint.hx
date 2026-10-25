@@ -57,5 +57,8 @@ class B2ContactConstraint
 	public var friction:Float = 0;
 	public var restitution:Float = 0;
 	public var pointCount:Int = 0;
+	// The contact's inverse mass scales of body A and body B (B2Contact.setInvMassScales).
+	public var invMassScaleA:Float = 1.0;
+	public var invMassScaleB:Float = 1.0;
 	public var manifold:B2Manifold;
 }
