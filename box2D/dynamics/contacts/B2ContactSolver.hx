@@ -145,10 +145,14 @@ class B2ContactSolver
 				rnA *= rnA;
 				rnB *= rnB;
 
-				// Both sides scaled to 0 leave nothing to move: such a contact applies no impulse.
+				// Both sides scaled to 0 leave nothing to move: such a contact applies, warm starts and reports no impulse.
 				var kNormal:Float = invMassA + invMassB + invIA * rnA + invIB * rnB;
 				// b2Settings.b2Assert(kNormal > Number.MIN_VALUE);
 				ccp.normalMass = kNormal > 0.0 ? 1.0 / kNormal : 0.0;
+				if (kNormal <= 0.0)
+				{
+					ccp.normalImpulse = 0.0;
+				}
 
 				var kEqualized:Float = bodyA.m_mass * invMassA + bodyB.m_mass * invMassB;
 				kEqualized += bodyA.m_mass * invIA * rnA + bodyB.m_mass * invIB * rnB;
@@ -170,6 +174,10 @@ class B2ContactSolver
 				var kTangent:Float = invMassA + invMassB + invIA * rtA + invIB * rtB;
 				// b2Settings.b2Assert(kTangent > Number.MIN_VALUE);
 				ccp.tangentMass = kTangent > 0.0 ? 1.0 / kTangent : 0.0;
+				if (kTangent <= 0.0)
+				{
+					ccp.tangentImpulse = 0.0;
+				}
 
 				// Setup a velocity bias for restitution.
 				ccp.velocityBias = 0.0;

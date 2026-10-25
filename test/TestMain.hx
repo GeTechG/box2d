@@ -8,6 +8,7 @@ import box2D.dynamics.B2BodyType;
 import box2D.dynamics.B2ContactListener;
 import box2D.dynamics.B2FixtureDef;
 import box2D.dynamics.B2World;
+import box2D.dynamics.B2ContactImpulse;
 import box2D.dynamics.contacts.B2Contact;
 
 /**
@@ -25,6 +26,7 @@ class TestMain
 		testOneSidedContact();
 		testBothScalesZero();
 		testOneSidedBoxes();
+		testZeroScalesDropCachedImpulses();
 		testScalesResetBeforePreSolve();
 
 		Sys.println('$checks checks, $failures failed');
@@ -148,6 +150,33 @@ class TestMain
 		check("one-sided boxes: B bounced off A", b.getLinearVelocity().x > 1, 'got ${b.getLinearVelocity().x}');
 	}
 
+	// A ball resting on the ground accumulates a contact impulse; once both scales become 0 the contact reports none.
+	static function testZeroScalesDropCachedImpulses():Void
+	{
+		var world = new B2World(new B2Vec2(0, 10), false);
+		var listener = new SwitchToZeroListener();
+		world.setContactListener(listener);
+		var ground = world.createBody(new B2BodyDef());
+		var groundShape = new B2PolygonShape();
+		groundShape.setAsBox(5, 0.5);
+		var groundFixture = new B2FixtureDef();
+		groundFixture.shape = groundShape;
+		ground.createFixture(groundFixture);
+		createBall(world, 0, 0);
+		ground.setPositionAndAngle(new B2Vec2(0, 1), 0);
+		for (i in 0...60)
+		{
+			world.step(1 / 60, 10, 8);
+		}
+		check("cached impulses: the resting contact pushed", listener.maxImpulse > 0);
+		listener.zero = true;
+		listener.maxImpulse = 0;
+		listener.reports = 0;
+		world.step(1 / 60, 10, 8);
+		check("cached impulses: the contact was still reported", listener.reports > 0);
+		near("cached impulses: zero scales report no impulse", listener.maxImpulse, 0, 0);
+	}
+
 	static function createBox(world:B2World, x:Float, y:Float, angle:Float, vx:Float):B2Body
 	{
 		var bodyDef = new B2BodyDef();
@@ -222,6 +251,31 @@ class FirstStepOnlyListener extends B2ContactListener
 		if (seen.length == 2)
 		{
 			contact.setInvMassScales(0, 0);
+		}
+	}
+}
+
+// Sets both scales to 0 once `zero` is set; records the largest impulse postSolve reports.
+class SwitchToZeroListener extends B2ContactListener
+{
+	public var zero:Bool = false;
+	public var maxImpulse:Float = 0;
+	public var reports:Int = 0;
+
+	override public function preSolve(contact:B2Contact, oldManifold:B2Manifold):Void
+	{
+		if (zero)
+		{
+			contact.setInvMassScales(0, 0);
+		}
+	}
+
+	override public function postSolve(contact:B2Contact, impulse:B2ContactImpulse):Void
+	{
+		reports++;
+		for (i in 0...contact.getManifold().m_pointCount)
+		{
+			maxImpulse = Math.max(maxImpulse, Math.max(Math.abs(impulse.normalImpulses[i]), Math.abs(impulse.tangentImpulses[i])));
 		}
 	}
 }
