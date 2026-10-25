@@ -78,6 +78,13 @@ class B2ContactSolver
 			var bodyB:B2Body = fixtureB.m_body;
 			var manifold:B2Manifold = contact.getManifold();
 
+			var scaleA:Float = contact.m_invMassScaleA;
+			var scaleB:Float = contact.m_invMassScaleB;
+			var invMassA:Float = bodyA.m_invMass * scaleA;
+			var invIA:Float = bodyA.m_invI * scaleA;
+			var invMassB:Float = bodyB.m_invMass * scaleB;
+			var invIB:Float = bodyB.m_invI * scaleB;
+
 			var friction:Float = B2Settings.b2MixFriction(fixtureA.getFriction(), fixtureB.getFriction());
 			var restitution:Float = B2Settings.b2MixRestitution(fixtureA.getRestitution(), fixtureB.getRestitution());
 
@@ -107,6 +114,8 @@ class B2ContactSolver
 			cc.pointCount = manifold.m_pointCount;
 			cc.friction = friction;
 			cc.restitution = restitution;
+			cc.invMassScaleA = scaleA;
+			cc.invMassScaleB = scaleB;
 
 			cc.localPlaneNormal.x = manifold.m_localPlaneNormal.x;
 			cc.localPlaneNormal.y = manifold.m_localPlaneNormal.y;
@@ -136,14 +145,19 @@ class B2ContactSolver
 				rnA *= rnA;
 				rnB *= rnB;
 
-				var kNormal:Float = bodyA.m_invMass + bodyB.m_invMass + bodyA.m_invI * rnA + bodyB.m_invI * rnB;
+				// Both sides scaled to 0 leave nothing to move: such a contact applies, warm starts and reports no impulse.
+				var kNormal:Float = invMassA + invMassB + invIA * rnA + invIB * rnB;
 				// b2Settings.b2Assert(kNormal > Number.MIN_VALUE);
-				ccp.normalMass = 1.0 / kNormal;
+				ccp.normalMass = kNormal > 0.0 ? 1.0 / kNormal : 0.0;
+				if (kNormal <= 0.0)
+				{
+					ccp.normalImpulse = 0.0;
+				}
 
-				var kEqualized:Float = bodyA.m_mass * bodyA.m_invMass + bodyB.m_mass * bodyB.m_invMass;
-				kEqualized += bodyA.m_mass * bodyA.m_invI * rnA + bodyB.m_mass * bodyB.m_invI * rnB;
+				var kEqualized:Float = bodyA.m_mass * invMassA + bodyB.m_mass * invMassB;
+				kEqualized += bodyA.m_mass * invIA * rnA + bodyB.m_mass * invIB * rnB;
 				// b2Assert(kEqualized > Number.MIN_VALUE);
-				ccp.equalizedMass = 1.0 / kEqualized;
+				ccp.equalizedMass = kEqualized > 0.0 ? 1.0 / kEqualized : 0.0;
 
 				// var tangent:B2Vec2 = b2Math.b2CrossVF(normal, 1.0);
 				var tangentX:Float = normalY;
@@ -157,9 +171,13 @@ class B2ContactSolver
 				rtA *= rtA;
 				rtB *= rtB;
 
-				var kTangent:Float = bodyA.m_invMass + bodyB.m_invMass + bodyA.m_invI * rtA + bodyB.m_invI * rtB;
+				var kTangent:Float = invMassA + invMassB + invIA * rtA + invIB * rtB;
 				// b2Settings.b2Assert(kTangent > Number.MIN_VALUE);
-				ccp.tangentMass = 1.0 / kTangent;
+				ccp.tangentMass = kTangent > 0.0 ? 1.0 / kTangent : 0.0;
+				if (kTangent <= 0.0)
+				{
+					ccp.tangentImpulse = 0.0;
+				}
 
 				// Setup a velocity bias for restitution.
 				ccp.velocityBias = 0.0;
@@ -179,11 +197,6 @@ class B2ContactSolver
 			{
 				var ccp1:B2ContactConstraintPoint = cc.points[0];
 				var ccp2:B2ContactConstraintPoint = cc.points[1];
-
-				var invMassA:Float = bodyA.m_invMass;
-				var invIA:Float = bodyA.m_invI;
-				var invMassB:Float = bodyB.m_invMass;
-				var invIB:Float = bodyB.m_invI;
 
 				// var rn1A:Float = b2Cross(ccp1.rA, normal);
 				// var rn1B:Float = b2Cross(ccp1.rB, normal);
@@ -234,10 +247,10 @@ class B2ContactSolver
 
 			var bodyA:B2Body = c.bodyA;
 			var bodyB:B2Body = c.bodyB;
-			var invMassA:Float = bodyA.m_invMass;
-			var invIA:Float = bodyA.m_invI;
-			var invMassB:Float = bodyB.m_invMass;
-			var invIB:Float = bodyB.m_invI;
+			var invMassA:Float = bodyA.m_invMass * c.invMassScaleA;
+			var invIA:Float = bodyA.m_invI * c.invMassScaleA;
+			var invMassB:Float = bodyB.m_invMass * c.invMassScaleB;
+			var invIB:Float = bodyB.m_invI * c.invMassScaleB;
 			// var normal:B2Vec2 = new B2Vec2(c.normal.x, c.normal.y);
 			var normalX:Float = c.normal.x;
 			var normalY:Float = c.normal.y;
@@ -323,10 +336,10 @@ class B2ContactSolver
 			var vA:B2Vec2 = bodyA.m_linearVelocity;
 			var vB:B2Vec2 = bodyB.m_linearVelocity;
 
-			var invMassA:Float = bodyA.m_invMass;
-			var invIA:Float = bodyA.m_invI;
-			var invMassB:Float = bodyB.m_invMass;
-			var invIB:Float = bodyB.m_invI;
+			var invMassA:Float = bodyA.m_invMass * c.invMassScaleA;
+			var invIA:Float = bodyA.m_invI * c.invMassScaleA;
+			var invMassB:Float = bodyB.m_invMass * c.invMassScaleB;
+			var invIB:Float = bodyB.m_invI * c.invMassScaleB;
 			// var normal:B2Vec2 = new B2Vec2(c.normal.x, c.normal.y);
 			var normalX:Float = c.normal.x;
 			var normalY:Float = c.normal.y;
@@ -875,10 +888,10 @@ class B2ContactSolver
 			var bodyA:B2Body = c.bodyA;
 			var bodyB:B2Body = c.bodyB;
 
-			var invMassA:Float = bodyA.m_mass * bodyA.m_invMass;
-			var invIA:Float = bodyA.m_mass * bodyA.m_invI;
-			var invMassB:Float = bodyB.m_mass * bodyB.m_invMass;
-			var invIB:Float = bodyB.m_mass * bodyB.m_invI;
+			var invMassA:Float = bodyA.m_mass * bodyA.m_invMass * c.invMassScaleA;
+			var invIA:Float = bodyA.m_mass * bodyA.m_invI * c.invMassScaleA;
+			var invMassB:Float = bodyB.m_mass * bodyB.m_invMass * c.invMassScaleB;
+			var invIB:Float = bodyB.m_mass * bodyB.m_invI * c.invMassScaleB;
 
 			s_psm.initialize(c);
 			var normal:B2Vec2 = s_psm.m_normal;

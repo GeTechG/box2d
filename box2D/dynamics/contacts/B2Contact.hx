@@ -130,6 +130,35 @@ class B2Contact
 	}
 
 	/**
+	 * Scale the inverse mass and inverse rotational inertia of each body
+	 * in this contact only. A scale of 0 makes that body react to this
+	 * contact as if its mass were infinite; 1 leaves it as it is. Scales
+	 * must be non-negative. This can be used inside the pre-solve contact
+	 * listener; both scales are reset to 1 before every pre-solve.
+	 */
+	public function setInvMassScales(scaleA:Float, scaleB:Float):Void
+	{
+		m_invMassScaleA = scaleA;
+		m_invMassScaleB = scaleB;
+	}
+
+	/**
+	 * Get the inverse mass scale of body A in this contact.
+	 */
+	public function getInvMassScaleA():Float
+	{
+		return m_invMassScaleA;
+	}
+
+	/**
+	 * Get the inverse mass scale of body B in this contact.
+	 */
+	public function getInvMassScaleB():Float
+	{
+		return m_invMassScaleB;
+	}
+
+	/**
 	 * Get the next contact in the world's contact list.
 	 */
 	public function getNext():B2Contact
@@ -194,6 +223,8 @@ class B2Contact
 	public function reset(fixtureA:B2Fixture = null, fixtureB:B2Fixture = null):Void
 	{
 		m_flags = e_enabledFlag;
+		m_invMassScaleA = 1.0;
+		m_invMassScaleB = 1.0;
 
 		if (fixtureA == null || fixtureB == null)
 		{
@@ -243,6 +274,8 @@ class B2Contact
 
 		// Re-enable this contact
 		m_flags |= e_enabledFlag;
+		m_invMassScaleA = 1.0;
+		m_invMassScaleB = 1.0;
 
 		var touching:Bool = false;
 		var wasTouching:Bool = (m_flags & e_touchingFlag) == e_touchingFlag;
@@ -379,4 +412,7 @@ class B2Contact
 	public var m_oldManifold:B2Manifold;
 
 	public var m_toi:Float = 0;
+
+	public var m_invMassScaleA:Float = 1.0;
+	public var m_invMassScaleB:Float = 1.0;
 }
