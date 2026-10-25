@@ -12,7 +12,7 @@ Independent fork of `openfl/box2d` (the Haxe port of the Box2D 2D physics engine
 ## Toolchain
 Run `tools/setup.sh` once in every checkout or worktree, before anything else. It is the only setup step.
 - **Compiler.** Build and type only with the pinned Haxe 5: `.haxe/haxe` with `HAXE_STD_PATH=.haxe/std`. Never the system `haxe` (4.x). The pin is `tools/haxe-build.pin` — one line, `<build key> <sha256 of the archive>`, a build of `GeTechG/haxe`; changing the compiler is a one-commit change to that file.
-- The library has no dependencies and no test suite.
+- The library has no dependencies. Its tests live in `test/` (entry point `test/TestMain.hx`) and run with `bash test/run.sh`.
 - **Serena** (symbol navigation, configured in `.mcp.json` and `.codex/config.toml`) uses the language server and the display config `.serena/lsp.hxml` the script generates. Re-run the script after adding or removing source files or changing the pin, then restart Serena.
 - **Reference lists are not exhaustive.** The language server can miss call sites, and misses more when a module of `.serena/lsp.hxml` does not compile (the script fails loudly then). Before a rename or a removal, check against a text search (`grep -rn`).
 - **ast-grep** (`.ast-grep/ast-grep`, configured by `sgconfig.yml`; version and grammar commit — `GeTechG/tree-sitter-haxe` — are pinned in `tools/setup.sh`) finds Haxe code by syntactic shape: `.ast-grep/ast-grep run -p 'new $T($$$A)' -l haxe box2D`. Run it from the repository root. It is not a step of the lookup order; take it for two jobs. *A bulk edit by pattern*, instead of `sed -i`: `--rewrite '…'`, read the diff it prints, then apply with `-U`. *A question about the shape of code* that neither a symbol nor a string names — where code of a given shape occurs (it skips comments and strings). A pattern has to parse as a Haxe fragment on its own; when one finds nothing where text search does, look at it with `--debug-query=ast` and match by node kind instead. Grammar bugs are filed in the TSHX project.
@@ -33,7 +33,9 @@ for t in "--interp" "-hl /dev/null" "-js /dev/null"; do
 done
 ```
 
-A change to behaviour comes with a test that fails before it; the first such task adds the test harness.
+- `bash test/run.sh` — the tests pass (the `build` job of CI runs them too).
+
+A change to behaviour comes with a test in `test/` that fails before it.
 
 ## Specs
 `openspec/` holds this fork's own specs (`openspec/specs/`). Behaviour or rule changes go through `openspec/changes/`.

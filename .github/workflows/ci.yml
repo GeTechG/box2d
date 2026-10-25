@@ -37,3 +37,5 @@ jobs:
           for t in "--interp" "-hl /dev/null" "-js /dev/null"; do
             HAXE_STD_PATH=.haxe/std .haxe/haxe -cp . --macro "include('box2D')" --no-output $t
           done
+      - name: Run the tests
+        run: bash test/run.sh
