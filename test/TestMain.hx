@@ -1,5 +1,6 @@
 import box2D.collision.B2Manifold;
 import box2D.collision.shapes.B2CircleShape;
+import box2D.collision.shapes.B2PolygonShape;
 import box2D.common.math.B2Vec2;
 import box2D.dynamics.B2Body;
 import box2D.dynamics.B2BodyDef;
@@ -23,6 +24,7 @@ class TestMain
 		testUnitScalesMatchNoScales();
 		testOneSidedContact();
 		testBothScalesZero();
+		testOneSidedBoxes();
 		testScalesResetBeforePreSolve();
 
 		Sys.println('$checks checks, $failures failed');
@@ -117,6 +119,52 @@ class TestMain
 			&& !Math.isNaN(r.b.getPosition().x));
 		near("both zero: A velocity unchanged", vA, 1, 1e-12);
 		near("both zero: B velocity unchanged", vB, -1, 1e-12);
+	}
+
+	// Two boxes meeting face to face, slightly off-centre and turned: a two-point manifold, solved by the block solver.
+	static function testOneSidedBoxes():Void
+	{
+		var world = new B2World(new B2Vec2(0, 0), false);
+		var listener = new ScalesListener(0, 1);
+		world.setContactListener(listener);
+		var a = createBox(world, -1, 0, 0.02, 1);
+		var b = createBox(world, 1, 0.2, -0.02, -1);
+		var twoPoints = false;
+		for (i in 0...120)
+		{
+			world.step(1 / 60, 10, 8);
+			var c = world.getContactList();
+			while (c != null)
+			{
+				twoPoints = twoPoints || (c.isTouching() && c.getManifold().m_pointCount == 2);
+				c = c.getNext();
+			}
+		}
+		check("one-sided boxes: the manifold had two points", twoPoints);
+		near("one-sided boxes: A velocity x unchanged", a.getLinearVelocity().x, 1, 1e-12);
+		near("one-sided boxes: A velocity y unchanged", a.getLinearVelocity().y, 0, 1e-12);
+		near("one-sided boxes: A does not spin", a.getAngularVelocity(), 0, 1e-12);
+		near("one-sided boxes: A angle unchanged", a.getAngle(), 0.02, 1e-12);
+		check("one-sided boxes: B bounced off A", b.getLinearVelocity().x > 1, 'got ${b.getLinearVelocity().x}');
+	}
+
+	static function createBox(world:B2World, x:Float, y:Float, angle:Float, vx:Float):B2Body
+	{
+		var bodyDef = new B2BodyDef();
+		bodyDef.type = DYNAMIC_BODY;
+		bodyDef.position.set(x, y);
+		bodyDef.angle = angle;
+		bodyDef.linearVelocity.set(vx, 0);
+		var body = world.createBody(bodyDef);
+		var shape = new B2PolygonShape();
+		shape.setAsBox(0.5, 0.5);
+		var fixtureDef = new B2FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.density = 1;
+		fixtureDef.friction = 0.5;
+		fixtureDef.restitution = 0.5;
+		body.createFixture(fixtureDef);
+		return body;
 	}
 
 	static function testScalesResetBeforePreSolve():Void
