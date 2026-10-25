@@ -33,6 +33,8 @@ class B2ContactImpulse
 		tangentImpulses = new Array<Float>();
 	}
 
+	/** The number of valid entries: the point count of the contact's manifold. */
+	public var count:Int = 0;
 	public var normalImpulses:Array<Float>;
 	public var tangentImpulses:Array<Float>;
 }
