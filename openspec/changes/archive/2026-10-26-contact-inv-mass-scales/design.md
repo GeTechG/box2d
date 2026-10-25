@@ -2,7 +2,7 @@
 
 ## Where the scales live
 
-On `B2Contact` (`m_invMassScaleA`, `m_invMassScaleB`, both 1). `B2ContactSolver.initialize` copies the scaled inverse masses and inertias into the `B2ContactConstraint` (`invMassA`, `invIA`, `invMassB`, `invIB`), and every later phase — warm start, velocity iterations, position iterations — reads them from the constraint instead of from the bodies. The scales are read once per solve, so a listener that changes them outside `preSolve` takes effect at the next solve.
+On `B2Contact` (`m_invMassScaleA`, `m_invMassScaleB`, both 1). `B2ContactSolver.initialize` copies them into the `B2ContactConstraint` (`invMassScaleA`, `invMassScaleB`), and every phase — effective masses, warm start, velocity iterations, position iterations — multiplies the bodies' inverse masses and inertias by the constraint's scales. The scales are read once per solve, so a listener that changes them outside `preSolve` takes effect at the next solve. A scale of exactly 1 multiplies without rounding, so with no scales set the solver computes bit-identical numbers.
 
 The position solver works with "equalized" inverse masses (`m_mass * m_invMass`, i.e. 1 for a dynamic body, 0 otherwise); the scale multiplies those too, so a side with scale 0 is not moved by position correction either.
 
@@ -16,7 +16,7 @@ The position solver works with "equalized" inverse masses (`m_mass * m_invMass`,
 
 ## Zero effective mass
 
-`1 / k` is taken only for `k > 0`, otherwise the effective mass is 0 (no impulse). Before this change `k` could not be 0 for a solid contact (one body is always dynamic), so results with no scales set are unchanged.
+`1 / k` is taken only for `k > 0`, otherwise the effective mass is 0 and the impulse cached from earlier steps is cleared, so the contact neither warm starts nor reports to `postSolve` an impulse it no longer applies. Before this change `k` could not be 0 for a solid contact (one body is always dynamic), so results with no scales set are unchanged.
 
 ## Names
 
