@@ -1,11 +1,11 @@
 ## 1. Pin and skills
 
-- [ ] 1.1 Add `openspec/cli.pin` with `1.16.0`; verify: `cat openspec/cli.pin` equals `openspec --version`.
-- [ ] 1.2 Regenerate the OpenSpec skills with the pinned CLI (`openspec update`) in `.claude/skills/` and `.agents/skills/`, in the same commit as the pin; verify: every `generatedBy` in `openspec-*/SKILL.md` equals the pin.
+- [x] 1.1 Add `openspec/cli.pin` with `1.16.0`; verify: `cat openspec/cli.pin` equals `openspec --version`.
+- [x] 1.2 Regenerate the OpenSpec skills with the pinned CLI (`openspec update`) in `.claude/skills/` and `.agents/skills/`, in the same commit as the pin; verify: every `generatedBy` in `openspec-*/SKILL.md` equals the pin.
 
 ## 2. config.yaml rules
 
-- [ ] 2.1 Add `rules.specs`, `rules.tasks` and `operations.apply` / `operations.archive` guidance pointing at `AGENTS.md` to `openspec/config.yaml`; verify: `openspec instructions specs --change openspec-cli-pin` and `openspec instructions tasks --change openspec-cli-pin` show the rules.
+- [x] 2.1 Add `rules.specs`, `rules.tasks` and `operations.apply` / `operations.archive` guidance pointing at `AGENTS.md` to `openspec/config.yaml`; verify: `openspec instructions specs --change openspec-cli-pin` and `openspec instructions tasks --change openspec-cli-pin` show the rules.
 
 ## 3. Check and CI
 
