@@ -9,9 +9,9 @@
 
 ## 3. Check and CI
 
-- [ ] 3.1 Write `openspec/check.sh`: strict validation of everything (errors and warnings fail), placeholder Purpose, active change without `.openspec.yaml`, skill `generatedBy` ≠ pin, open non-`[human]` task in the archive; it runs the global `openspec` when its version equals the pin, otherwise `npm exec` of the pinned package; verify: each failing case reproduced in a scratch copy makes it fail with the name of the offender, and it passes on the finished branch.
+- [x] 3.1 Write `openspec/check.sh`: strict validation of everything (errors and warnings fail), placeholder Purpose, active change without `.openspec.yaml`, skill `generatedBy` ≠ pin, open non-`[human]` task in the archive; it runs the global `openspec` when its version equals the pin, otherwise `npm exec` of the pinned package; verify: each failing case reproduced in a scratch copy makes it fail with the name of the offender, and it passes on the finished branch.
 - [ ] 3.2 Add the `openspec` job to `.github/workflows/ci.yml` running `openspec/check.sh`; verify: the job is green on the pushed branch.
-- [ ] 3.3 Record the pin, the bump procedure and the check in `AGENTS.md` (Toolchain, Checks, Specs); verify: reading it, every command above is named.
+- [x] 3.3 Record the pin, the bump procedure and the check in `AGENTS.md` (Toolchain, Checks, Specs); verify: reading it, every command above is named.
 
 ## 4. Spec fixes
 
