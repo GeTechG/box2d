@@ -4,3 +4,25 @@ context: |
   box2d: the Haxe port of the Box2D 2D physics engine, maintained as an independent fork of
   openfl/box2d. Its own rules live in AGENTS.md; its own specs live in openspec/specs. Consumers pin
   it by commit. Every commit is either code or infrastructure, never both (see openspec/specs/commit-kinds).
+
+rules:
+  specs:
+    - Requirement text is at most 500 characters and states one behavior with SHALL or MUST; details, examples and edge cases go into its scenarios.
+    - Scenarios use exactly `#### Scenario:` headers with **WHEN** / **THEN** bullets; every requirement has at least one scenario.
+    - A spec states only observable behavior, never how it is implemented.
+    - A MODIFIED requirement copies the whole requirement with all its scenarios, then edits it.
+    - A REMOVED requirement carries a **Reason** and a **Migration**.
+    - The Purpose of a new spec is at least 50 characters and never `TBD`.
+  tasks:
+    - Every task group carries its own tests and documentation; no trailing "write tests" or "update docs" group.
+    - Every task names how it is verified (a command, a test, an observable result).
+    - Steps after the tasks are done (merge, hand-over, a consumer bump) go under `## Workflow follow-up` as plain bullets, not checkboxes.
+    - Steps only a human can do are `- [ ] N.M [human] …` checkboxes; agents never tick them.
+
+operations:
+  apply:
+    guidance:
+      - Follow AGENTS.md, section "Workflow", step 2 (Implement), and its "Commits" rules — code and infrastructure never share a commit.
+  archive:
+    guidance:
+      - Follow AGENTS.md, section "Workflow", step 3 (Test) — the archive is the last commit of the branch — and run its "Checks" before the merge (step 5).

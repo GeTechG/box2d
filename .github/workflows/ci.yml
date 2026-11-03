@@ -39,3 +39,14 @@ jobs:
           done
       - name: Run the tests
         run: bash test/run.sh
+
+  openspec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Runs the CLI version pinned in openspec/cli.pin (npm exec of @fission-ai/openspec@<pin>).
+      - name: Specs, changes and skills are valid
+        run: bash openspec/check.sh
